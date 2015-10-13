@@ -6,7 +6,6 @@ _main() {
   mkdir build
   pushd build
   ../bootstrap
-  make
   make unittest
 }
 

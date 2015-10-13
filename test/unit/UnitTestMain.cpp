@@ -1,11 +1,11 @@
 /********************************************************************
- * Copyright (c) 2013 - 2014, Pivotal Inc.
+ * Copyright (c) 2013 - 2015, Pivotal Inc.
  * All rights reserved.
  *
  * Author: Zhanwei Wang
  ********************************************************************/
 /********************************************************************
- * 2014 -
+ * 2014 - 2015
  * open source under Apache License Version 2.0
  ********************************************************************/
 /**
@@ -29,10 +29,10 @@
 
 int main(int argc, char ** argv) {
     ::testing::InitGoogleTest(&argc, argv);
-#ifdef DATA_DIR
-    if (0 != chdir(DATA_DIR)) {
-        abort();
-    }
-#endif
+/* #ifdef DATA_DIR */
+/*     if (0 != chdir(DATA_DIR)) { */
+/*         abort(); */
+/*     } */
+/* #endif */
     return RUN_ALL_TESTS();
 }

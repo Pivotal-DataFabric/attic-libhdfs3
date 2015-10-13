@@ -2,47 +2,43 @@
 
 set -euo pipefail
 
-compile_for_testing() {
+bootstrap_for_testing() {
   mkdir build
   pushd build
   ../bootstrap
-  make
   popd
 }
 
 install_hadoop() {
   echo '***** Installing hadoop *****'
 
-  # Configure SSH
+  # Configure and launch SSH
   /sbin/sshd-keygen
-  /sbin/sshd
   ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
   cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
-  # TODO: need to actually run ssh localhost and echo yes to it?  Manually add localhost to known hosts?
+  sed -ri 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config # See https://gist.github.com/gasi/5691565
+  /sbin/sshd &
 
   # Download and extract Hadoop
   wget --progress=dot:giga --no-check-certificate --no-cookies -O hadoop-2.7.1.tar.gz http://supergsego.com/apache/hadoop/common/hadoop-2.7.1/hadoop-2.7.1.tar.gz
   gunzip hadoop-2.7.1.tar.gz
-  tar xvf hadoop-2.7.1.tar
+  tar xf hadoop-2.7.1.tar
   rm -f hadoop-2.7.1.tar
-  mv hadoop-2.7.1 /usr/local/hadoop
   export HADOOP_PREFIX=/usr/local/hadoop
+  export HADOOP_HOME=$HADOOP_PREFIX
+  mv hadoop-2.7.1 "$HADOOP_HOME"
 
+  # Set JAVA_HOME
   export JAVA_HOME=/usr/java/latest
-  echo "JAVA_HOME=/usr/java/latest" >> /etc/environment
-  # TODO: look into hadoop_env.sh -- need to modify/run that?
+  sed -ri 's/export JAVA_HOME=\$\{JAVA_HOME\}/export JAVA_HOME=\/usr\/java\/latest/g' "$HADOOP_HOME/etc/hadoop/hadoop-env.sh"
 
-  configure_hadoop_site
-
-  # Initialize namenode
-  bin/hdfs namenode -format
-
-  # Initialize datanode
-  sbin/start-dfs./sh
+  # Give SSH some time to come online before we ask it to scan for keys
+  ssh-keyscan localhost >> ~/.ssh/known_hosts
+  ssh-keyscan 0.0.0.0 >> ~/.ssh/known_hosts
 }
 
 configure_hadoop_site() {
-# Configure etc/hadoop/core-site.xml and etc/hadoop/hdfs-site.xml as per https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SingleCluster.html
+  # Configure Hadoop site settings as per https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SingleCluster.html
   cat > "${HADOOP_PREFIX}/etc/hadoop/core-site.xml" <<CoreXML
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
@@ -62,8 +58,20 @@ CoreXML
         <name>dfs.replication</name>
         <value>1</value>
     </property>
+    <property>
+      <name>dfs.namenode.fs-limits.min-block-size</name>
+      <value>1024</value>
+    </property>
 </configuration>
 SiteXML
+}
+
+initialize_hadoop_nodes() {
+  # Initialize namenode and format filesystem
+  "${HADOOP_PREFIX}"/bin/hdfs namenode -format
+
+  # Launch datanode and namenodes
+  "${HADOOP_PREFIX}"/sbin/start-dfs.sh
 }
 
 run_function_tests() {
@@ -73,9 +81,10 @@ run_function_tests() {
 }
 
 _main() {
-  compile_for_testing
+  bootstrap_for_testing
   install_hadoop
   configure_hadoop_site
+  initialize_hadoop_nodes
   run_function_tests
 }
 
