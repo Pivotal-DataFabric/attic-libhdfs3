@@ -1,0 +1,8 @@
+---
+platform: linux
+image: docker://docker-registry.service.consul:5000/toolchain-image
+inputs:
+  - name: libhdfs3_src
+    path: .
+run:
+  path: ci/functiontest.bash
