@@ -76,7 +76,7 @@ initialize_hadoop_nodes() {
 
 run_function_tests() {
   pushd build
-  make functiontest
+  make functiontest 2> /dev/null
   popd
 }
 
