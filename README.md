@@ -15,6 +15,12 @@ HDFS is implemented in JAVA language and additionally provides a JNI based C lan
 Libhdfs3 is developed by [Pivotal](http://www.pivotal.io/) and used in HAWQ, which is a massive parallel database engine in [Pivotal Hadoop Distribution](http://www.pivotal.io/big-data/pivotal-hd).
 
 ========================
+## Wiki
+
+Detailed setup and installation instructions are in the wiki!
+
+https://github.com/PivotalRD/libhdfs3/wiki
+
 ## Installation
 
 ### Requirement
@@ -49,9 +55,9 @@ Assume libhdfs3 home directory is LIBHDFS3_HOME.
     ../bootstrap
 
 Environment variable CC and CXX can be used to setup the compiler.
-Script "bootstrap" is basically a wrapper of cmake command, user can use cmake directly to tune the configuration. 
+Script "bootstrap" is basically a wrapper of cmake command, user can use cmake directly to tune the configuration.
 
-Run command "../bootstrap --help" for more configuration. 
+Run command `../bootstrap --help` for more configuration.
 
 ### Build
 
@@ -73,15 +79,13 @@ To do function test, first start HDFS, and create the function test configure fi
 
     make functiontest
     
-To show code coverage result, run command. Code coverage result can be found at BUILD_DIR/CodeCoverageReport/index.html
-
-    make ShowCoverage
+To show code coverage result:
+- build from the bootstrap with `--enable-coverage`
+- run command `make ShowCoverage`
+- Code coverage result can be found at BUILD_DIR/CodeCoverageReport/index.html
 
 ### Install
 
 To install libhdfs3, run command
 
     make install
-
-## Wiki
-https://github.com/PivotalRD/libhdfs3/wiki
