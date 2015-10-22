@@ -5,7 +5,7 @@ set -euo pipefail
 get_libhdfs3_version() {
   local dir_to_tar
   dir_to_tar="$1"
-  cat "${dir_to_tar}/lib/pkgconfig/libhdfs3.pc" | grep Version | cut -d ' ' -f2
+  cat "${dir_to_tar}/dist/lib/pkgconfig/libhdfs3.pc" | grep Version | cut -d ' ' -f2
 }
 
 generate_package_name() {
@@ -24,8 +24,9 @@ _main() {
   mkdir ${dest}
   make DESTDIR=${dest} install
 
+  # dir_to_tar should contain only dist
   local dir_to_tar
-  dir_to_tar="${dest}${parent_dir}/dist"
+  dir_to_tar="${dest}${parent_dir}/"
 
   local version_number
   version_number=$(get_libhdfs3_version "${dir_to_tar}")
@@ -34,7 +35,7 @@ _main() {
   s3_package=$(generate_package_name "${version_number}")
 
   echo "${s3_package}"
-  tar -cvzf "${s3_package}" "${dir_to_tar}"
+  tar -cvzf "${s3_package}" -C "${dir_to_tar}" .
 }
 
 _main "$@"
