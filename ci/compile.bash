@@ -2,12 +2,6 @@
 
 set -euo pipefail
 
-ensure_git_installed() {
-  if ! which git 2> /dev/null; then
-    yum install -y git
-  fi
-}
-
 get_libhdfs3_version() {
   local dir_to_tar
   dir_to_tar="$1"
@@ -29,7 +23,6 @@ _main() {
   local dest="package"
   mkdir ${dest}
   make DESTDIR=${dest} install
-  ensure_git_installed
 
   local dir_to_tar
   dir_to_tar="${dest}${parent_dir}/dist"
