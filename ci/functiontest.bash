@@ -20,7 +20,7 @@ install_hadoop() {
   /sbin/sshd &
 
   # Download and extract Hadoop
-  wget --progress=dot:giga --no-check-certificate --no-cookies -O hadoop-2.7.1.tar.gz http://supergsego.com/apache/hadoop/common/hadoop-2.7.1/hadoop-2.7.1.tar.gz
+  wget --progress=dot:giga --no-check-certificate --no-cookies -O hadoop-2.7.1.tar.gz http://www.apache.org/dist/hadoop/common/hadoop-2.7.1/hadoop-2.7.1.tar.gz
   gunzip hadoop-2.7.1.tar.gz
   tar xf hadoop-2.7.1.tar
   rm -f hadoop-2.7.1.tar
