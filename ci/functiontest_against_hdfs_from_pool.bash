@@ -70,14 +70,6 @@ CoreSiteXML
 SiteXML
 }
 
-initialize_hadoop_nodes() {
-  # Initialize namenode and format filesystem
-  "${HADOOP_PREFIX}"/bin/hdfs namenode -format
-
-  # Launch datanode and namenodes
-  "${HADOOP_PREFIX}"/sbin/start-dfs.sh
-}
-
 run_function_tests() {
   pushd build
   make functiontest 2> /dev/null
@@ -94,7 +86,6 @@ _main() {
   local hdfs_namenode_ip=$(get_hostname_of "$hdfs_namenode_ip_port")
   install_hadoop "$hdfs_namenode_ip_port"
   configure_hadoop_site "$hdfs_namenode_ip"
-  initialize_hadoop_nodes
   run_function_tests
 }
 
