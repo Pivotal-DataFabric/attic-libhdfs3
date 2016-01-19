@@ -84,8 +84,8 @@ _main() {
   bootstrap_for_testing
   local hdfs_namenode_ip_port=$(cat "$1")
   local hdfs_namenode_ip=$(get_hostname_of "$hdfs_namenode_ip_port")
-  install_hadoop "$hdfs_namenode_ip_port"
-  configure_hadoop_site "$hdfs_namenode_ip"
+  install_hadoop "$hdfs_namenode_ip"
+  configure_hadoop_site "$hdfs_namenode_ip_port"
   run_function_tests
 }
 
