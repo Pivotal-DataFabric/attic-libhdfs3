@@ -12,7 +12,7 @@ bootstrap_for_testing() {
 install_hadoop() {
   echo '***** Installing hadoop *****'
 
-  local hdfs_namenode="$1"
+  local hdfs_namenode_hostname="$1"
 
   # Configure and launch SSH
   /sbin/sshd-keygen
@@ -37,19 +37,19 @@ install_hadoop() {
   # Give SSH some time to come online before we ask it to scan for keys
   ssh-keyscan localhost >> ~/.ssh/known_hosts
   ssh-keyscan 0.0.0.0 >> ~/.ssh/known_hosts
-  ssh-keyscan "${hdfs_namenode}" >> ~/.ssh/known_hosts
+  ssh-keyscan "$hdfs_namenode_hostname" >> ~/.ssh/known_hosts
 }
 
 configure_hadoop_site() {
   # Configure Hadoop site settings as per https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SingleCluster.html
-  local hdfs_namenode="$1"
+  local hdfs_namenode_ip_port="$1"
   cat > "${HADOOP_PREFIX}/etc/hadoop/core-site.xml" <<CoreSiteXML
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
     <property>
         <name>fs.defaultFS</name>
-        <value>${hdfs_namenode}</value>
+        <value>$hdfs_namenode_ip_port</value>
     </property>
 </configuration>
 CoreSiteXML
@@ -84,11 +84,16 @@ run_function_tests() {
   popd
 }
 
+get_hostname_of() {
+  echo "$1" | cut -d ':' -f1
+}
+
 _main() {
   bootstrap_for_testing
-  local hdfs_namenode="$1"
-  install_hadoop "${hdfs_namenode}"
-  configure_hadoop_site "${hdfs_namenode}"
+  local hdfs_namenode_ip_port=$(cat "$1")
+  local hdfs_namenode_ip=$(get_hostname_of "$hdfs_namenode_ip_port")
+  install_hadoop "$hdfs_namenode_ip_port"
+  configure_hadoop_site "$hdfs_namenode_ip"
   initialize_hadoop_nodes
   run_function_tests
 }
