@@ -12,6 +12,8 @@ bootstrap_for_testing() {
 install_hadoop() {
   echo '***** Installing hadoop *****'
 
+  local hdfs_namenode="$1"
+
   # Configure and launch SSH
   /sbin/sshd-keygen
   ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
@@ -35,11 +37,22 @@ install_hadoop() {
   # Give SSH some time to come online before we ask it to scan for keys
   ssh-keyscan localhost >> ~/.ssh/known_hosts
   ssh-keyscan 0.0.0.0 >> ~/.ssh/known_hosts
+  ssh-keyscan "${hdfs_namenode}" >> ~/.ssh/known_hosts
 }
 
 configure_hadoop_site() {
   # Configure Hadoop site settings as per https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SingleCluster.html
-  cp "$1" "${HADOOP_PREFIX}/etc/hadoop/core-site.xml"
+  local hdfs_namenode="$1"
+  cat > "${HADOOP_PREFIX}/etc/hadoop/core-site.xml" <<CoreSiteXML
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>${hdfs_namenode}</value>
+    </property>
+</configuration>
+CoreSiteXML
 
   cat > "${HADOOP_PREFIX}/etc/hadoop/hdfs-site.xml" <<SiteXML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -73,8 +86,9 @@ run_function_tests() {
 
 _main() {
   bootstrap_for_testing
-  install_hadoop
-  configure_hadoop_site "$1"
+  local hdfs_namenode="$1"
+  install_hadoop "${hdfs_namenode}"
+  configure_hadoop_site "${hdfs_namenode}"
   initialize_hadoop_nodes
   run_function_tests
 }
