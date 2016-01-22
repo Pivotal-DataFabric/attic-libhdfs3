@@ -12,8 +12,6 @@ bootstrap_for_testing() {
 install_hadoop() {
   echo '***** Installing hadoop *****'
 
-  local hdfs_namenode_hostname="$1"
-
   # Configure and launch SSH
   /sbin/sshd-keygen
   ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
@@ -37,37 +35,131 @@ install_hadoop() {
   # Give SSH some time to come online before we ask it to scan for keys
   ssh-keyscan localhost >> ~/.ssh/known_hosts
   ssh-keyscan 0.0.0.0 >> ~/.ssh/known_hosts
-  ssh-keyscan "$hdfs_namenode_hostname" >> ~/.ssh/known_hosts
+  ssh-keyscan "$1" >> ~/.ssh/known_hosts
 }
 
 configure_hadoop_site() {
   # Configure Hadoop site settings as per https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SingleCluster.html
-  local hdfs_namenode_ip_port="$1"
-  cat > "${HADOOP_PREFIX}/etc/hadoop/core-site.xml" <<CoreSiteXML
-<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+  cat > "test/data/function-test.xml" <<FunctionTestXML
 <configuration>
-    <property>
-        <name>fs.defaultFS</name>
-        <value>$hdfs_namenode_ip_port</value>
-    </property>
-</configuration>
-CoreSiteXML
 
-  cat > "${HADOOP_PREFIX}/etc/hadoop/hdfs-site.xml" <<SiteXML
-<?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-<configuration>
+	<property>
+		<name>dfs.default.uri</name>
+		<value>$1</value>
+	</property>
+
+	<property>
+		<name>hadoop.security.authentication</name>
+		<value>simple</value>
+	</property>
+
+	<property>
+		<name>dfs.nameservices</name>
+		<value>phdcluster</value>
+	</property>
+
+	<property>
+		<name>dfs.default.replica</name>
+		<value>3</value>
+	</property>
+
+	<property>
+		<name>dfs.client.log.severity</name>
+		<value>INFO</value>
+	</property>
+
+	<property>
+		<name>dfs.client.read.shortcircuit</name>
+		<value>true</value>
+	</property>
+
+	<property>
+		<name>input.localread.blockinfo.cachesize</name>
+		<value>10</value>
+	</property>
+
+	<property>
+		<name>dfs.client.read.shortcircuit.streams.cache.size</name>
+		<value>10</value>
+	</property>
+
+	<property>
+		<name>dfs.client.use.legacy.blockreader.local</name>
+		<value>true</value>
+	</property>
+
+	<property>
+		<name>output.replace-datanode-on-failure</name>
+		<value>false</value>
+	</property>
+
     <property>
-        <name>dfs.replication</name>
-        <value>1</value>
+		<name>input.localread.mappedfile</name>
+		<value>true</value>
     </property>
-    <property>
-      <name>dfs.namenode.fs-limits.min-block-size</name>
-      <value>1024</value>
-    </property>
+
+	<property>
+		<name>dfs.domain.socket.path</name>
+		<value>/var/lib/hadoop-hdfs/hdfs_domain__PORT</value>
+	</property>
+
+	<property>
+		<name>dfs.ha.namenodes.phdcluster</name>
+		<value>nn1,nn2</value>
+	</property>
+
+	<property>
+		<name>dfs.namenode.rpc-address.phdcluster.nn1</name>
+		<value>mdw:9000</value>
+	</property>
+
+	<property>
+		<name>dfs.namenode.rpc-address.phdcluster.nn2</name>
+		<value>smdw:9000</value>
+	</property>
+
+	<property>
+		<name>dfs.namenode.http-address.phdcluster.nn1</name>
+		<value>mdw:50070</value>
+	</property>
+
+	<property>
+		<name>dfs.namenode.http-address.phdcluster.nn2</name>
+		<value>smdw:50070</value>
+	</property>
+
+	<property>
+		<name>rpc.socekt.linger.timeout</name>
+		<value>20</value>
+	</property>
+
+	<property>
+		<name>rpc.max.idle</name>
+		<value>100</value>
+	</property>
+
+	<property>
+		<name>test.get.conf</name>
+		<value>success</value>
+	</property>
+
+	<property>
+		<name>test.get.confint32</name>
+		<value>10</value>
+	</property>
+
+	<property>
+		<name>dfs.client.socketcache.expiryMsec</name>
+		<value>3000</value>
+	</property>
+
+	<property>
+		<name>dfs.client.socketcache.capacity</name>
+		<value>1</value>
+	</property>
 </configuration>
-SiteXML
+FunctionTestXML
+
 }
 
 run_function_tests() {
@@ -80,12 +172,18 @@ get_hostname_of() {
   echo "$1" | cut -d ':' -f1
 }
 
+format_hdfs_namenode() {
+  echo y | "${HADOOP_HOME}"/bin/hdfs namenode -format
+}
+
 _main() {
-  bootstrap_for_testing
   local hdfs_namenode_ip_port=$(cat "$1")
-  local hdfs_namenode_ip=$(get_hostname_of "$hdfs_namenode_ip_port")
-  install_hadoop "$hdfs_namenode_ip"
-  configure_hadoop_site "$hdfs_namenode_ip_port"
+  local hdfs_namenode_ip=$(get_hostname_of "${hdfs_namenode_ip_port}")
+
+  bootstrap_for_testing
+  install_hadoop "${hdfs_namenode_ip}"
+  configure_hadoop_site "hdfs://${hdfs_namenode_ip_port}"
+  format_hdfs_namenode
   run_function_tests
 }
 
