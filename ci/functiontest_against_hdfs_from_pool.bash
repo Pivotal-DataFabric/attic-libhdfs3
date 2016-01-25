@@ -20,7 +20,7 @@ install_hadoop() {
   /sbin/sshd &
 
   # Download and extract Hadoop
-  wget --progress=dot:giga --no-check-certificate --no-cookies -O hadoop-2.7.1.tar.gz http://supergsego.com/apache/hadoop/common/hadoop-2.7.1/hadoop-2.7.1.tar.gz
+  wget --progress=dot:giga --no-check-certificate --no-cookies -O hadoop-2.7.1.tar.gz http://www.apache.org/dist/hadoop/common/hadoop-2.7.1/hadoop-2.7.1.tar.gz
   gunzip hadoop-2.7.1.tar.gz
   tar xf hadoop-2.7.1.tar
   rm -f hadoop-2.7.1.tar
@@ -33,19 +33,31 @@ install_hadoop() {
   sed -ri 's/export JAVA_HOME=\$\{JAVA_HOME\}/export JAVA_HOME=\/usr\/java\/latest/g' "$HADOOP_HOME/etc/hadoop/hadoop-env.sh"
 
   # Give SSH some time to come online before we ask it to scan for keys
-  ssh-keyscan localhost >> ~/.ssh/known_hosts
-  ssh-keyscan 0.0.0.0 >> ~/.ssh/known_hosts
-  ssh-keyscan "$1" >> ~/.ssh/known_hosts
+  {
+    ssh-keyscan localhost
+    ssh-keyscan 0.0.0.0
+    ssh-keyscan "$1"
+  } >> ~/.ssh/known_hosts
 }
 
 configure_hadoop_site() {
-  # Configure Hadoop site settings as per https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SingleCluster.html
+  cat > "${HADOOP_PREFIX}/etc/hadoop/core-site.xml" <<CoreXML
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://$1</value>
+    </property>
+</configuration>
+CoreXML
+
   cat > "test/data/function-test.xml" <<FunctionTestXML
 <configuration>
 
 	<property>
 		<name>dfs.default.uri</name>
-		<value>$1</value>
+		<value>hdfs://$1</value>
 	</property>
 
 	<property>
@@ -177,12 +189,14 @@ format_hdfs_namenode() {
 }
 
 _main() {
-  local hdfs_namenode_ip_port=$(cat "$1")
-  local hdfs_namenode_ip=$(get_hostname_of "${hdfs_namenode_ip_port}")
+  local hdfs_namenode_ip_port
+  hdfs_namenode_ip_port=$(cat "$1")
+  local hdfs_namenode_ip
+  hdfs_namenode_ip=$(get_hostname_of "${hdfs_namenode_ip_port}")
 
   bootstrap_for_testing
   install_hadoop "${hdfs_namenode_ip}"
-  configure_hadoop_site "hdfs://${hdfs_namenode_ip_port}"
+  configure_hadoop_site "${hdfs_namenode_ip_port}"
   format_hdfs_namenode
   run_function_tests
 }
