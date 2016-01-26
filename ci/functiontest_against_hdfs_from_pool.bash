@@ -9,9 +9,7 @@ bootstrap_for_testing() {
   popd
 }
 
-install_hadoop() {
-  echo '***** Installing hadoop *****'
-
+configure_environment() {
   # Configure and launch SSH
   /sbin/sshd-keygen
   ssh-keygen -t dsa -P '' -f ~/.ssh/id_dsa
@@ -19,20 +17,17 @@ install_hadoop() {
   sed -ri 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config # See https://gist.github.com/gasi/5691565
   /sbin/sshd &
 
-  # Download and extract Hadoop
-  wget --progress=dot:giga --no-check-certificate --no-cookies -O hadoop-2.7.1.tar.gz http://www.apache.org/dist/hadoop/common/hadoop-2.7.1/hadoop-2.7.1.tar.gz
-  gunzip hadoop-2.7.1.tar.gz
-  tar xf hadoop-2.7.1.tar
-  rm -f hadoop-2.7.1.tar
+  # Set HADOOP_PREFIX and HADOOP_HOME
   export HADOOP_PREFIX=/usr/local/hadoop
   export HADOOP_HOME=$HADOOP_PREFIX
-  mv hadoop-2.7.1 "$HADOOP_HOME"
 
   # Set JAVA_HOME
   export JAVA_HOME=/usr/java/latest
   sed -ri 's/export JAVA_HOME=\$\{JAVA_HOME\}/export JAVA_HOME=\/usr\/java\/latest/g' "$HADOOP_HOME/etc/hadoop/hadoop-env.sh"
 
   # Give SSH some time to come online before we ask it to scan for keys
+  sleep 2
+
   {
     ssh-keyscan localhost
     ssh-keyscan 0.0.0.0
@@ -105,10 +100,10 @@ CoreXML
 		<value>false</value>
 	</property>
 
-    <property>
+        <property>
 		<name>input.localread.mappedfile</name>
 		<value>true</value>
-    </property>
+        </property>
 
 	<property>
 		<name>dfs.domain.socket.path</name>
@@ -195,7 +190,7 @@ _main() {
   hdfs_namenode_ip=$(get_hostname_of "${hdfs_namenode_ip_port}")
 
   bootstrap_for_testing
-  install_hadoop "${hdfs_namenode_ip}"
+  configure_environment "${hdfs_namenode_ip}"
   configure_hadoop_site "${hdfs_namenode_ip_port}"
   format_hdfs_namenode
   run_function_tests
