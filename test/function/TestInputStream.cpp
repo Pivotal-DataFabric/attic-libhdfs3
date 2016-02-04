@@ -383,114 +383,118 @@ static double CalculateThroughput(int64_t elapsed, int64_t size) {
     return size / 1024.0 * 1000.0 / 1024.0 / elapsed;
 }
 
-TEST(TestThroughput, Throughput) {
-    Config conf("function-test.xml");
-    FileSystem fs(conf);
-    fs.connect();
-    SetupTestEnv(fs, conf);
-    const char * filename = BASE_DIR"TestThroughput";
-    //const char * filename = "TestThroughput_SeekAhead";
-    std::vector<char> buffer(64 * 1024);
-    int64_t fileLength = 5 * 1024 * 1024 * 1024ll;
-    int64_t todo = fileLength, batch, elapsed;
-    size_t offset = 0;
-    steady_clock::time_point start, stop;
-
-    if (!fs.exist(filename)) {
-        OutputStream ous;
-        start = steady_clock::now();
-        EXPECT_NO_THROW(
-            DebugException(ous.open(fs, filename, Create | Overwrite /*| SyncBlock*/)));
-
-        while (todo > 0) {
-            batch = todo < static_cast<int>(buffer.size()) ?
-                    todo : buffer.size();
-            ASSERT_NO_THROW(DebugException(ous.append(&buffer[0], batch)));
-            todo -= batch;
-            offset += batch;
-        }
-
-        ASSERT_NO_THROW(DebugException(ous.close()));
-        steady_clock::time_point stop = steady_clock::now();
-        elapsed = ToMilliSeconds(start, stop);
-        LOG(INFO, "write file time %" PRId64 " ms, throughput is %lf mbyte/s",
-            elapsed, CalculateThroughput(elapsed, fileLength));
-    }
-
-    start = steady_clock::now();
-    InputStream in;
-    EXPECT_NO_THROW(in.open(fs, filename, true));
-    std::vector<char> buff(20 * 1024 + 1);
-    todo = fileLength;
-
-    while (todo > 0) {
-        batch = todo < static_cast<int>(buff.size()) ? todo : buff.size();
-        batch = in.read(&buff[0], batch);
-        ASSERT_TRUE(batch > 0);
-        todo = todo - batch;
-        offset += batch;
-    }
-
-    EXPECT_NO_THROW(in.close());
-    stop = steady_clock::now();
-    elapsed = ToMilliSeconds(start, stop);
-    LOG(INFO, "read file time %" PRId64 " ms, throughput is %lf mbyte/s", elapsed, CalculateThroughput(elapsed, fileLength));
-    fs.deletePath(filename, true);
-}
-
-TEST(TestThroughput, TestSeekAhead) {
-    Config conf("function-test.xml");
-    conf.set("dfs.client.read.shortcircuit", true);
-    FileSystem fs(conf);
-    fs.connect();
-    SetupTestEnv(fs, conf);
-    int64_t offset = 0;
-    int64_t fileLength = 20 * 1024 * 1024 * 1024ll;
-    int64_t todo = fileLength, batch, elapsed;
-    const char * filename = BASE_DIR"TestThroughput_SeekAhead";
-    //const char * filename = "TestThroughput_SeekAhead";
-    steady_clock::time_point start, stop;
-
-    if (!fs.exist(filename)) {
-        std::vector<char> buffer(64 * 1024);
-        OutputStream ous;
-        start = steady_clock::now();
-        EXPECT_NO_THROW(
-            DebugException(ous.open(fs, filename, Create | Overwrite /*| SyncBlock*/)));
-
-        while (todo > 0) {
-            batch = todo < static_cast<int>(buffer.size()) ?
-                    todo : buffer.size();
-            ASSERT_NO_THROW(DebugException(ous.append(&buffer[0], batch)));
-            todo -= batch;
-        }
-
-        ASSERT_NO_THROW(DebugException(ous.close()));
-        stop = steady_clock::now();
-        elapsed = ToMilliSeconds(start, stop);
-        LOG(INFO, "write file time %" PRId64 " ms, throughput is %lf mbyte/s",
-            elapsed, CalculateThroughput(elapsed, fileLength));
-    }
-
-    start = steady_clock::now();
-    InputStream in;
-    EXPECT_NO_THROW(in.open(fs, filename, true));
-    std::vector<char> buff(8 * 1024 * 1024 + 1);
-    todo = fileLength;
-
-    while (todo > 0) {
-        batch = todo < static_cast<int>(buff.size()) ? todo : buff.size();
-        DebugException(in.readFully(&buff[0], batch / 8));
-        //seek
-        in.seek(offset + batch);
-        todo = todo - batch;
-        offset += batch;
-    }
-
-    EXPECT_NO_THROW(in.close());
-    stop = steady_clock::now();
-    elapsed = ToMilliSeconds(start, stop);
-    LOG(INFO, "read and seek file time %" PRId64 " ms, throughput is %lf mbyte/s",
-        elapsed, CalculateThroughput(elapsed, fileLength));
-    fs.deletePath(filename, true);
-}
+/**
+ * Temporarily comment out tests that take ~95% of the entire test run time
+ */
+//TEST(TestThroughput, Throughput) {
+//    Config conf("function-test.xml");
+//    FileSystem fs(conf);
+//    fs.connect();
+//    SetupTestEnv(fs, conf);
+//    const char * filename = BASE_DIR"TestThroughput";
+//    //const char * filename = "TestThroughput_SeekAhead";
+//    std::vector<char> buffer(64 * 1024);
+//    int64_t fileLength = 5 * 1024 * 1024 * 1024ll;
+//    int64_t todo = fileLength, batch, elapsed;
+//    size_t offset = 0;
+//    steady_clock::time_point start, stop;
+//
+//    if (!fs.exist(filename)) {
+//        OutputStream ous;
+//        start = steady_clock::now();
+//        EXPECT_NO_THROW(
+//            DebugException(ous.open(fs, filename, Create | Overwrite /*| SyncBlock*/)));
+//
+//        while (todo > 0) {
+//            batch = todo < static_cast<int>(buffer.size()) ?
+//                    todo : buffer.size();
+//            ASSERT_NO_THROW(DebugException(ous.append(&buffer[0], batch)));
+//            todo -= batch;
+//            offset += batch;
+//        }
+//
+//        ASSERT_NO_THROW(DebugException(ous.close()));
+//        steady_clock::time_point stop = steady_clock::now();
+//        elapsed = ToMilliSeconds(start, stop);
+//        LOG(INFO, "write file time %" PRId64 " ms, throughput is %lf mbyte/s",
+//            elapsed, CalculateThroughput(elapsed, fileLength));
+//    }
+//
+//    start = steady_clock::now();
+//    InputStream in;
+//    EXPECT_NO_THROW(in.open(fs, filename, true));
+//    std::vector<char> buff(20 * 1024 + 1);
+//    todo = fileLength;
+//
+//    while (todo > 0) {
+//        batch = todo < static_cast<int>(buff.size()) ? todo : buff.size();
+//        batch = in.read(&buff[0], batch);
+//        ASSERT_TRUE(batch > 0);
+//        todo = todo - batch;
+//        offset += batch;
+//    }
+//
+//    EXPECT_NO_THROW(in.close());
+//    stop = steady_clock::now();
+//    elapsed = ToMilliSeconds(start, stop);
+//    LOG(INFO, "read file time %" PRId64 " ms, throughput is %lf mbyte/s", elapsed, CalculateThroughput(elapsed, fileLength));
+//    fs.deletePath(filename, true);
+//}
+//
+//TEST(TestThroughput, TestSeekAhead) {
+//    Config conf("function-test.xml");
+//    conf.set("dfs.client.read.shortcircuit", true);
+//    FileSystem fs(conf);
+//    fs.connect();
+//    SetupTestEnv(fs, conf);
+//    int64_t offset = 0;
+//    int64_t fileLength = 20 * 1024 * 1024 * 1024ll;
+//    int64_t todo = fileLength;
+//    int64_t batch, elapsed;
+//    const char * filename = BASE_DIR"TestThroughput_SeekAhead";
+//    //const char * filename = "TestThroughput_SeekAhead";
+//    steady_clock::time_point start, stop;
+//
+//    if (!fs.exist(filename)) {
+//        std::vector<char> buffer(64 * 1024);
+//        OutputStream ous;
+//        start = steady_clock::now();
+//        EXPECT_NO_THROW(
+//            DebugException(ous.open(fs, filename, Create | Overwrite /*| SyncBlock*/)));
+//
+//        while (todo > 0) {
+//            batch = todo < static_cast<int>(buffer.size()) ?
+//                    todo : buffer.size();
+//            ASSERT_NO_THROW(DebugException(ous.append(&buffer[0], batch)));
+//            todo -= batch;
+//        }
+//
+//        ASSERT_NO_THROW(DebugException(ous.close()));
+//        stop = steady_clock::now();
+//        elapsed = ToMilliSeconds(start, stop);
+//        LOG(INFO, "write file time %" PRId64 " ms, throughput is %lf mbyte/s",
+//            elapsed, CalculateThroughput(elapsed, fileLength));
+//    }
+//
+//    start = steady_clock::now();
+//    InputStream in;
+//    EXPECT_NO_THROW(in.open(fs, filename, true));
+//    std::vector<char> buff(8 * 1024 * 1024 + 1);
+//    todo = fileLength;
+//
+//    while (todo > 0) {
+//        batch = todo < static_cast<int>(buff.size()) ? todo : buff.size();
+//        DebugException(in.readFully(&buff[0], batch / 8));
+//        //seek
+//        in.seek(offset + batch);
+//        todo = todo - batch;
+//        offset += batch;
+//    }
+//
+//    EXPECT_NO_THROW(in.close());
+//    stop = steady_clock::now();
+//    elapsed = ToMilliSeconds(start, stop);
+//    LOG(INFO, "read and seek file time %" PRId64 " ms, throughput is %lf mbyte/s",
+//        elapsed, CalculateThroughput(elapsed, fileLength));
+//    fs.deletePath(filename, true);
+//}
