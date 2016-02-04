@@ -179,7 +179,8 @@ get_hostname_of() {
   echo "$1" | cut -d ':' -f1
 }
 
-format_hdfs_namenode() {
+clear_hdfs_cluster() {
+  "${HADOOP_HOME}"/bin/hdfs dfs -rm -r -f -skipTrash "/*"
   echo y | "${HADOOP_HOME}"/bin/hdfs namenode -format
 }
 
@@ -192,7 +193,7 @@ _main() {
   bootstrap_for_testing
   configure_environment "${hdfs_namenode_ip}"
   configure_hadoop_site "${hdfs_namenode_ip_port}"
-  format_hdfs_namenode
+  clear_hdfs_cluster
   run_function_tests
 }
 
