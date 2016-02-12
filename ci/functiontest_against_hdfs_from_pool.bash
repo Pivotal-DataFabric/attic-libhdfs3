@@ -185,9 +185,10 @@ clear_hdfs_cluster() {
 }
 
 _main() {
+  local hdfs_namenode_ip_port
+  hdfs_namenode_ip_port=$(cat "$1")
+
   pushd libhdfs3
-    local hdfs_namenode_ip_port
-    hdfs_namenode_ip_port=$(cat "$1")
     local hdfs_namenode_ip
     hdfs_namenode_ip=$(get_hostname_of "${hdfs_namenode_ip_port}")
 
