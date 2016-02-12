@@ -3,9 +3,9 @@ platform: linux
 image: docker://docker-registry.service.consul:5000/libhdfs3-toolchain-image
 inputs:
   - name: libhdfs3_src
-    path: .
+    path: libhdfs3
   - name: core_site_for_hdfs
     path: secured_lock
 run:
-  path: ci/functiontest_against_hdfs_from_pool.bash
+  path: libhdfs3/ci/functiontest_against_hdfs_from_pool.bash
   args: ["secured_lock/metadata"]

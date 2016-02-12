@@ -1,0 +1,19 @@
+pairs:
+  jz: Jesse Zhang; jzhang
+  cj: C.J. Jameson; cjameson
+  ms: Michael Schubert; mschubert
+  ah: Addison Huddy; ahuddy
+  ss: Shoabe Shariff; sshariff
+  rdr: Rob Day-Reynolds; rdayreynolds
+  jmf: Jacob Frank; jfrank
+  vm: Venkatesh Muthusamy; vmuthusamy
+  mt: Marbin Tan; mtan
+  rt: Ryan Tang; rtang
+  tm: Tom Meyer; tmeyer
+  sg: Sasanka Griddalur; sgriddalur
+  za: Zak Auerbach; zauerbach
+email:
+  prefix: pair
+  domain: pivotal.io
+  no_solo_prefix: true
+global: true

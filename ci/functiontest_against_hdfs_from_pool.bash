@@ -185,16 +185,18 @@ clear_hdfs_cluster() {
 }
 
 _main() {
-  local hdfs_namenode_ip_port
-  hdfs_namenode_ip_port=$(cat "$1")
-  local hdfs_namenode_ip
-  hdfs_namenode_ip=$(get_hostname_of "${hdfs_namenode_ip_port}")
+  pushd libhdfs3
+    local hdfs_namenode_ip_port
+    hdfs_namenode_ip_port=$(cat "$1")
+    local hdfs_namenode_ip
+    hdfs_namenode_ip=$(get_hostname_of "${hdfs_namenode_ip_port}")
 
-  bootstrap_for_testing
-  configure_environment "${hdfs_namenode_ip}"
-  configure_hadoop_site "${hdfs_namenode_ip_port}"
-  clear_hdfs_cluster
-  run_function_tests
+    bootstrap_for_testing
+    configure_environment "${hdfs_namenode_ip}"
+    configure_hadoop_site "${hdfs_namenode_ip_port}"
+    clear_hdfs_cluster
+    run_function_tests
+  popd
 }
 
 _main "$@"
