@@ -4,6 +4,10 @@ platform: linux
 image: docker://docker-registry.service.consul:5000/libhdfs3-toolchain-image
 inputs:
   - name: libhdfs3_src
-    path: .
+params:
+  OUTPUT_PATH: build
 run:
-  path: ci/compile.bash
+  path: libhdfs3_src/ci/compile.bash
+outputs:
+  - path: build
+    name: libhdfs3_build_dir
