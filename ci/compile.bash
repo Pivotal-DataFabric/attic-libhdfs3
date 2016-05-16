@@ -30,8 +30,6 @@ _main() {
   local output_dir="${2}"
   local install_destination="${output_dir}/package"
 
-  pushd "${basedir}"
-  
   #Providing the full expanded path here because it's going to be concatenated in an ugly way later
   local src_dir
   src_dir="$(pwd)/${basedir}"
@@ -61,7 +59,6 @@ _main() {
   # make the tarball from the perspective of the dist directory
   # put it in the mounted output directory that concourse provided
   tar -cvzf "${output_dir}/${s3_package}" -C "${dir_to_tar}" .
-  popd
 }
 
 _main "$@"
