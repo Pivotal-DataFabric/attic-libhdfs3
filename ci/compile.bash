@@ -26,6 +26,8 @@ generate_package_name() {
 }
 
 _main() {
+  local basedir="${1}"
+  pushd "${basedir}"
   #Concourse mounts a volume at the output directory, so we expect that 'build' is already here
   local output_dir="$1"
   local install_destination="${output_dir}/package"
@@ -59,6 +61,7 @@ _main() {
   # make the tarball from the perspective of the dist directory
   # put it in the mounted output directory that concourse provided
   tar -cvzf "${output_dir}/${s3_package}" -C "${dir_to_tar}" .
+  popd
 }
 
 _main $OUTPUT_PATH "$@"

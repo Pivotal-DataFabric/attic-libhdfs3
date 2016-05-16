@@ -76,11 +76,14 @@ run_function_tests() {
 }
 
 _main() {
+  local basedir="${1}"
+  pushd "${basedir}"
   bootstrap_for_testing
   configure_environment
   configure_hadoop_site
   initialize_hadoop_nodes
   run_function_tests
+  popd
 }
 
 _main "$@"

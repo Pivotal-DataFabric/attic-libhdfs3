@@ -185,6 +185,8 @@ clear_hdfs_cluster() {
 }
 
 _main() {
+  local basedir="${1}"
+  pushd "${basedir}"
   local hdfs_namenode_ip_port
   hdfs_namenode_ip_port=$(cat "$1")
 
@@ -197,6 +199,7 @@ _main() {
     configure_hadoop_site "${hdfs_namenode_ip_port}"
     clear_hdfs_cluster
     run_function_tests
+  popd
   popd
 }
 

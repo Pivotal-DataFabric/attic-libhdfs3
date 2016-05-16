@@ -3,6 +3,8 @@
 set -euo pipefail
 
 _main() {
+  local basedir="${1}"
+  pushd "${basedir}"
   echo "****** Build libhdfs3 ******"
   mkdir build
   pushd build
@@ -14,6 +16,7 @@ _main() {
 
   echo "****** Generate coverage report ******"
   make ShowCoverage
+  popd
 }
 
 _main "$@"
