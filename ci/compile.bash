@@ -29,7 +29,7 @@ _main() {
   local basedir="${1}"
   pushd "${basedir}"
   #Concourse mounts a volume at the output directory, so we expect that 'build' is already here
-  local output_dir="$1"
+  local output_dir="${basedir}"
   local install_destination="${output_dir}/package"
 
   mkdir -p "$install_destination"
@@ -64,4 +64,4 @@ _main() {
   popd
 }
 
-_main $OUTPUT_PATH "$@"
+_main "$@"
