@@ -27,16 +27,16 @@ generate_package_name() {
 
 _main() {
   local basedir="${1}"
-  pushd "${basedir}"
-  #Concourse mounts a volume at the output directory, so we expect that 'build' is already here
-  local output_dir="${basedir}"
+  local output_dir="${2}"
   local install_destination="${output_dir}/package"
 
-  mkdir -p "$install_destination"
-
-  local src_dir
+  pushd "${basedir}"
+  
   #Providing the full expanded path here because it's going to be concatenated in an ugly way later
-  src_dir="$(pwd)/libhdfs3_src"
+  local src_dir
+  src_dir="$(pwd)/${basedir}"
+
+  mkdir -p "$install_destination"
 
   pushd "$output_dir"
     "$src_dir"/bootstrap
