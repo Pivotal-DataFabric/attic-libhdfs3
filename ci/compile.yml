@@ -1,7 +1,6 @@
 ---
 platform: linux
 
-image: docker://docker.ci.eng.pivotal.io/libhdfs3-toolchain-image
 inputs:
   - name: libhdfs3_src
 params:
