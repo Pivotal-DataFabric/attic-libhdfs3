@@ -1,4 +1,4 @@
-libhdfs3
+<h1> VMware has ended active development of this project, this repository will no longer be updated.</h1><br>libhdfs3
 ========================
 [![Build Status](https://travis-ci.org/PivotalRD/libhdfs3.svg?branch=apache-rpc-9)](https://travis-ci.org/PivotalRD/libhdfs3)
 
